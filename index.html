@@ -6,85 +6,30 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <title>Work Schedule Roster</title>
+    <title>Roster</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
             margin: 0;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        .container {
-            max-width: 100%;
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 10px;
-        }
-        .last-updated {
-            text-align: center;
-            color: #666;
-            font-size: 14px;
-            margin-bottom: 10px;
-        }
-        .refresh-btn {
-            display: block;
-            margin: 0 auto 20px auto;
-            padding: 8px 16px;
-            background: #007cba;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .refresh-btn:hover {
-            background: #005a87;
+            padding: 0;
         }
         iframe {
             width: 100%;
-            height: 80vh;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            height: 100vh;
+            border: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Work Schedule Roster</h1>
-        <div class="last-updated">
-            Last updated: <span id="updateTime">Loading...</span>
-        </div>
-        <button class="refresh-btn" onclick="forceRefresh()">Refresh Now</button>
-        <iframe id="sheetFrame" src="" frameborder="0"></iframe>
-    </div>
+    <iframe id="sheetFrame" src=""></iframe>
 
     <script>
-        // Replace with your Google Sheet embed URL
-        // Get from: File → Share → Publish to web → Embed
         const sheetEmbedUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiZPBjakCcNDOtJVDhayA6pH4_AR1kJT_3dz5sR5veWcadc8-JGDEaujCeoKQ9ynX0cVLpfxjX5Gex/pubhtml';
         
         function loadSheetWithCacheBust() {
             const frame = document.getElementById('sheetFrame');
-            const updateTime = document.getElementById('updateTime');
-            
-            // Force cache busting with timestamp
             const cacheBuster = '?cachebust=' + new Date().getTime();
             const fullUrl = sheetEmbedUrl + cacheBuster;
-            
             frame.src = fullUrl;
-            updateTime.textContent = new Date().toLocaleString();
-            
-            console.log('Sheet loaded with cache bust:', new Date().toLocaleString());
-        }
-        
-        function forceRefresh() {
-            document.getElementById('updateTime').textContent = 'Refreshing...';
-            loadSheetWithCacheBust();
         }
         
         // Load when page opens
