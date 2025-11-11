@@ -23,16 +23,16 @@
     <iframe id="sheetFrame" src=""></iframe>
 
     <script>
-        // Add parameters to control the view
         const baseUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiZPBjakCcNDOtJVDhayA6pH4_AR1kJT_3dz5sR5veWcadc8-JGDEaujCeoKQ9ynX0cVLpfxjX5Gex/pubhtml';
-        
-        // Parameters to freeze rows and improve display
-        const viewParams = '&widget=true&headers=false&chrome=false';
         
         function loadSheetWithCacheBust() {
             const frame = document.getElementById('sheetFrame');
-            const cacheBuster = '?cachebust=' + new Date().getTime();
-            const fullUrl = baseUrl + cacheBuster + viewParams;
+            
+            // For first sheet (Sheet1), use gid=0
+            const cacheBuster = '&cachebust=' + new Date().getTime();
+            const params = '?widget=true&headers=false&gid=0';
+            const fullUrl = baseUrl + params + cacheBuster;
+            
             frame.src = fullUrl;
         }
         
@@ -48,9 +48,6 @@
                 loadSheetWithCacheBust();
             }
         });
-        
-        // Also refresh on focus
-        window.addEventListener('focus', loadSheetWithCacheBust);
     </script>
 </body>
 </html>
