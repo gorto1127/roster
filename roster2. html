@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timetable with AG Grid</title>
+    <!-- AG Grid CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-grid.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ag-grid-community/styles/ag-theme-alpine.css">
+    <script src="https://cdn.jsdelivr.net/npm/ag-grid-community/dist/ag-grid-community.min.js"></script>
+    <!-- PapaParse for CSV parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <style>
+        body {
+            margin: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+        #header {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        h1 {
+            margin: 0;
+            color: #333;
+            font-size: 1.8em;
+        }
+        .refresh-btn {
+            padding: 8px 16px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+        .refresh-btn:hover {
+            background: #45a049;
+        }
+        .refresh-btn:active {
+            transform: scale(0.98);
+        }
+        #status {
+            color: #666;
+            font-size: 0.9em;
+        }
+        #myGrid {
+            width: 100%;
+            height: calc(100vh - 120px);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        /* Style for frozen cells to make them visually distinct */
+        .ag-pinned-left-cols-container {
+            border-right: 2px solid #007bff !important;
+            background-color: #f8f9fa;
+        }
+        .ag-header-cell-pinned {
+            background-color: #e9ecef !important;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <h1>📅 Interactive Timetable</h1>
+        <button class="refresh-btn" onclick="refreshGrid()">
+            🔄 Refresh Timetable Data
+        </button>
+        <div id="status">Last updated: <span id="lastUpdateTime">-</span></div>
+    </div>
+    
+    <div class="info-box">
+        ✅ <strong>Columns A & B and Rows 1 & 2 are frozen</strong> – they stay visible while scrolling.<br>
+        Click the refresh button above to fetch the latest data from the spreadsheet.
+    </div>
+    
+    <!-- AG Grid container -->
+    <div id="myGrid" class="ag-theme-alpine"></div>
+
+    <script>
+        // 1. YOUR GOOGLE SHEET CSV URL
+        const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiZPBjakCcNDOtJVDhayA6pH4_AR1kJT_3dz5sR5veWcadc8-JGDEaujCeoKQ9ynX0cVLpfxjX5Gex/pub?gid=0&single=true&output=csv';
+        
+        // 2. Global reference to the grid
