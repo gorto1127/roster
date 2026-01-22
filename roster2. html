@@ -93,3 +93,126 @@
         const GOOGLE_SHEET_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTiZPBjakCcNDOtJVDhayA6pH4_AR1kJT_3dz5sR5veWcadc8-JGDEaujCeoKQ9ynX0cVLpfxjX5Gex/pub?gid=0&single=true&output=csv';
         
         // 2. Global reference to the grid
+        let gridApi;
+        
+        // 3. Convert CSV to JSON format for AG Grid
+        function processCSV(csvText) {
+            const results = Papa.parse(csvText, {
+                header: true, // First row becomes field names
+                skipEmptyLines: true
+            });
+            
+            if (results.errors.length > 0) {
+                console.error('CSV parsing errors:', results.errors);
+                return { columns: [], rows: [] };
+            }
+            
+            const rows = results.data;
+            const columns = results.meta.fields.map((fieldName, index) => {
+                return {
+                    headerName: fieldName,
+                    field: fieldName,
+                    sortable: true,
+                    filter: true,
+                    // Freeze first two columns (index 0 and 1)
+                    pinned: index < 2 ? 'left' : null,
+                    width: index < 2 ? 120 : 100,
+                    cellStyle: index < 2 ? { backgroundColor: '#f8f9fa' } : {}
+                };
+            });
+            
+            return { columns, rows };
+        }
+        
+        // 4. Fetch data from Google Sheet
+        async function fetchTimetableData() {
+            try {
+                // Add cache busting to prevent browser caching
+                const url = GOOGLE_SHEET_CSV_URL + '&cachebust=' + new Date().getTime();
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                const csvText = await response.text();
+                return processCSV(csvText);
+                
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                alert('Failed to load timetable data. Please try again.');
+                return { columns: [], rows: [] };
+            }
+        }
+        
+        // 5. Initialize and populate the grid
+        async function initializeGrid() {
+            const gridDiv = document.querySelector('#myGrid');
+            
+            // Grid configuration
+            const gridOptions = {
+                columnDefs: [], // Will be populated with data
+                rowData: [],    // Will be populated with data
+                defaultColDef: {
+                    resizable: true,
+                    filter: 'agTextColumnFilter',
+                    floatingFilter: true,
+                },
+                // Enable freezing (pinning) of rows
+                pinnedTopRowData: [],
+                // Enable row selection
+                rowSelection: 'multiple',
+                suppressRowClickSelection: true,
+                // Performance optimizations
+                animateRows: true,
+                // Ensure frozen columns are visually clear
+                enableCellTextSelection: true,
+                ensureDomOrder: true,
+            };
+            
+            // Create the grid
+            gridApi = agGrid.createGrid(gridDiv, gridOptions);
+            
+            // Load initial data
+            await refreshGrid();
+        }
+        
+        // 6. Refresh function (called by button)
+        async function refreshGrid() {
+            const statusEl = document.getElementById('lastUpdateTime');
+            statusEl.textContent = 'Loading...';
+            
+            const { columns, rows } = await fetchTimetableData();
+            
+            if (gridApi) {
+                // Update columns if structure changed
+                gridApi.setGridOption('columnDefs', columns);
+                
+                // Update rows
+                gridApi.setGridOption('rowData', rows);
+                
+                // Set first two rows as frozen (pinned)
+                if (rows.length >= 2) {
+                    gridApi.setGridOption('pinnedTopRowData', [rows[0], rows[1]]);
+                } else if (rows.length === 1) {
+                    gridApi.setGridOption('pinnedTopRowData', [rows[0]]);
+                }
+                
+                // Auto-size columns to fit content
+                gridApi.sizeColumnsToFit();
+            }
+            
+            // Update timestamp
+            const now = new Date();
+            statusEl.textContent = now.toLocaleTimeString();
+            console.log(`Timetable updated at ${now.toLocaleString()}`);
+        }
+        
+        // 7. Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initializeGrid);
+        
+        // 8. Optional: Auto-refresh every 5 minutes (commented out)
+        // setInterval(refreshGrid, 300000);
+    </script>
+</body>
+</html>
